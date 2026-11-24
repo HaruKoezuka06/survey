@@ -19,10 +19,11 @@ function todayStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-// 全角英数字→半角、空白除去、英字は大文字
+// 全角英数字→半角、いろいろなハイフン・長音記号→「-」、空白除去、英字は大文字
 function toHalfWidth(v) {
   return String(v || "")
     .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) - 0xfee0))
+    .replace(/[－ー‐‑–—―−ｰ]/g, "-")
     .replace(/[\s　]/g, "")
     .toUpperCase();
 }
@@ -45,7 +46,7 @@ class ConsentPlugin {
 
         <p><b>内容</b>　画面に出る言葉をキーで分類する課題（約${C.TASK_MIN}分）と質問紙（約${C.QUESTIONNAIRE_MIN}分）に取り組んでいただきます。所要時間は約${C.TOTAL_MIN}分です。詳しい目的は、終了後に説明します。対象は18歳以上の方です。${C.REWARD_TEXT ? esc(C.REWARD_TEXT) : ""}</p>
 
-        <p><b>参加は自由です</b>　参加しなくても、途中でやめても、不利益は一切ありません。やめたいときは、画面右下の「実験をやめる」ボタンを押すか、ブラウザを閉じてください。それまでの回答は使いません。答えたくない質問には、答えなくてかまいません。</p>
+        <p><b>参加は自由です</b>　参加しなくても、途中でやめても、不利益は一切ありません。やめたいときは、画面右下の「実験をやめる」ボタンを押すか、ブラウザを閉じてください。それまでの回答は使いません。質問はすべてに回答していただく形式のため、答えたくない質問がある場合は、同じように「実験をやめる」ボタンで参加をやめることができます。</p>
 
         <p><b>データの扱い</b>　回答は匿名で分析し、卒業論文と学内発表で統計的にまとめた形でのみ公表します。大学名・学籍番号・氏名は同意の記録にだけ使い、回答とは別に保管します。データは${esc(C.DISPOSAL_TIMING)}に破棄します。</p>
 
@@ -60,7 +61,7 @@ class ConsentPlugin {
             <tr><th>同意日</th><td><input type="date" id="c-date" value="${todayStr()}"></td></tr>
             <tr><th>大学名</th><td><input type="text" id="c-univ" value="${esc(C.DEFAULT_UNIVERSITY)}" autocomplete="off">
               <div class="small">他大学の方は書き換えてください</div></td></tr>
-            <tr><th>学籍番号</th><td><input type="text" id="c-sid" autocomplete="off">
+            <tr><th>学籍番号</th><td><input type="text" id="c-sid" autocomplete="off" placeholder="${esc(C.STUDENT_ID_EXAMPLE || "")}">
               <div class="small" id="c-sid-hint"></div></td></tr>
             <tr><th>氏名</th><td><input type="text" id="c-name" autocomplete="off"></td></tr>
           </table>

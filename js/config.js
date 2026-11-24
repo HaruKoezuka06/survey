@@ -7,12 +7,6 @@ const IAT_CONFIG = {
   // README の手順でデプロイしたURL（.../exec で終わるもの）を貼る
   GAS_URL: "https://script.google.com/macros/s/AKfycbwQeVT66tOh6iDgKQcy08UP2yZX_WJGtJ-WcRWhbDswjpOSNxXoamZdTWG4L7lpFXOw6A/exec",
 
-  // ---- 終了後に案内する外部フォーム（質問紙はこのページ内で実施するので、ふつうは空欄のまま）----
-  // 事前入力リンクの参加者番号欄を "PID" にしたURLを貼ると、番号が自動で入ります
-  // 例: "https://docs.google.com/forms/d/e/xxxx/viewform?usp=pp_url&entry.123456=PID"
-  // 空欄なら、IDを表示するだけで終了します
-  FORM_URL: "",
-
   // ---- 参加者番号 ----
   // 入力を受け付ける形式（正規表現）。例："^[0-9]{1,3}$" は1〜3桁の数字、"^P[0-9]{3}$" は P001 形式
   PID_PATTERN: "^[0-9]{1,3}$",
@@ -21,12 +15,26 @@ const IAT_CONFIG = {
   // ※ 実施順序は参加者番号で決まります：奇数 → A（自分＋快が先）、偶数 → B（自分＋不快が先）
   //    番号に英字が含まれる場合（P012 など）は、末尾の数字で判定します
 
-  // ---- 研究情報（同意画面に表示）----
-  STUDY_TITLE: "大学生の自己認識に関する調査",
-  RESEARCHER: "関西大学 社会学部 4年 肥塚 晴",
-  SUPERVISOR: "",          // 指導教員名（例: "関西大学 社会学部 ○○ ○○ 教授"）
-  CONTACT: "",             // 問い合わせ先メールアドレス
-  DURATION_MIN: 7,         // 所要時間の目安（分）
+  // ---- 同意画面・終了画面に表示する研究情報 ----
+  // 「未設定」のまま公開すると、画面に赤字で［未設定］と表示されます
+  CONSENT_VERSION: "v1.0",                        // 同意書の版（consent シートに記録）
+  STUDY_TITLE: "自己と対人関係についての感じ方に関する研究",
+  TASK_MIN: 8,                                    // 分類課題（IAT）の所要時間（分）
+  QUESTIONNAIRE_MIN: 7,                           // 質問紙の所要時間（分）
+  TOTAL_MIN: 20,                                  // 全体の所要時間（分）
+  REWARD_TEXT: "",                                // 謝礼がある場合の1文（例："参加者には500円分の図書カードをお渡しします。"）
+  RESEARCHER: "肥塚 晴",
+  AFFILIATION: "社会学部 社会学科 心理学専攻",      // 所属
+  EMAIL: "",                                      // 大学のメールアドレス
+  SUPERVISOR: "",                                 // 指導教員の氏名（例："脇田 ○○ 先生"）
+  DELETE_DEADLINE: "",                            // 同意取り消し（データ削除）の受付期日（例："2026年12月20日"）
+  DISPOSAL_TIMING: "卒業論文の審査終了後",          // データを破棄する時期
+
+  // ---- 同意画面の署名欄 ----
+  DEFAULT_UNIVERSITY: "関西大学",
+  // 大学名が「関西大学」のときだけ、学籍番号をこの形式でチェック（正規表現。全角は半角に直してから判定）
+  STUDENT_ID_PATTERN: "^[0-9A-Z]{6,12}$",
+  STUDENT_ID_HINT: "半角英数字で入力してください（全角でもかまいません）",
 
   // ---- 反応キー（物理キー位置。IMEのオン/オフに関係なく動作）----
   LEFT_KEY: "E",

@@ -198,6 +198,7 @@ async function saveData(jsPsych) {
   window.__IAT_RESULT__ = payload; // 動作確認用
 
   if (!C.GAS_URL) return { ok: false, reason: "no_url" };
+  if (!consentSaved) await sendConsent(); // 同意の送信に失敗していた場合はここで再送
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const res = await fetch(C.GAS_URL, {
@@ -269,7 +270,7 @@ function setupQuitButton(jsPsych) {
       <h2>実験を終了しました</h2>
       <p>ご協力ありがとうございました。ここまでの回答は保存されていません。</p>
       <p>このページを閉じてください。</p>
-      ${C.CONTACT ? `<p class="small">ご質問がある場合は ${C.CONTACT} までご連絡ください。</p>` : ""}
+      <p class="small">問い合わせ先：${contactHtml()}</p>
     </div>`);
   });
 }
@@ -290,31 +291,13 @@ function run() {
     return;
   }
 
-  setupQuitButton(jsPsych);
   const timeline = [];
 
+  /* ---- 研究参加の説明と同意（署名）---- */
   timeline.push({
-    type: jsPsychHtmlButtonResponse,
-    stimulus: `
-      <div class="instr consent">
-        <h2>${C.STUDY_TITLE}</h2>
-        <p>この調査は、大学生の自己認識について調べる卒業研究の一部です。所要時間は約${C.DURATION_MIN}分です。</p>
-        <ul>
-          <li>画面に出る言葉を、キーボードの2つのキーでできるだけ速く分類する課題を行います。そのあと、ご自身についての質問紙にお答えいただきます。</li>
-          <li>参加は任意です。途中でやめたくなった場合は、画面右下の「<b>実験をやめる</b>」ボタンを押せば、いつでもやめることができます。やめても不利益は一切なく、それまでの回答は破棄されます。</li>
-          <li>回答は匿名で記録され、統計的に処理されます。個人が特定される形で公表されることはありません。</li>
-          <li>データは研究目的以外には使用せず、研究終了後は適切に管理・廃棄します。</li>
-        </ul>
-        <p class="small">実施者：${C.RESEARCHER}${C.SUPERVISOR ? `<br>指導教員：${C.SUPERVISOR}` : ""}${C.CONTACT ? `<br>問い合わせ：${C.CONTACT}` : ""}</p>
-        <p>以上の内容を理解し、参加に同意いただける場合は「同意して始める」を押してください。</p>
-      </div>`,
-    choices: ["同意して始める", "同意しない"],
+    type: ConsentPlugin,
     data: { task: "consent" },
-    on_finish: (d) => {
-      if (d.response !== 0) {
-        jsPsych.abortExperiment(`<div class="instr"><h2>ご協力ありがとうございました</h2><p>同意いただけなかったため、調査は終了です。このページを閉じてください。</p></div>`);
-      }
-    },
+    on_finish: () => setupQuitButton(jsPsych), // 同意したあとから「実験をやめる」ボタンを出す
   });
 
   /* ---- 参加者番号の入力 → 確認（「修正する」を押すと入力に戻る）---- */
@@ -354,6 +337,7 @@ function run() {
       if (conf.length && conf[conf.length - 1].response === 0) {
         ORDER = orderFromPid(PID);
         jsPsych.data.addProperties({ pid: PID, iat_order: ORDER });
+        sendConsent(); // 同意の記録（署名）だけを consent シートへ送る
         return false;
       }
       return true;
@@ -427,21 +411,21 @@ function run() {
         jsPsych.data.get().localSave("csv", `iat_${PID}.csv`);
         saveMsg = `<p class="warn">⚠ データの自動送信に失敗しました。ダウンロードされたファイル（iat_${PID}.csv）を実施者に送ってください。</p>`;
       }
-      const formUrl = C.FORM_URL ? C.FORM_URL.replace("PID", encodeURIComponent(PID)) : "";
       return `<div class="instr">
         <h2>これですべて終了です。ご協力ありがとうございました。</h2>
         ${saveMsg}
-        <p class="center">参加者番号</p>
-        <p class="pid">${PID}</p>
+        <p class="center">あなたの参加者番号</p>
+        <p class="pid">${esc(PID)}</p>
+        <p class="center warn">この番号を控えてください（スクリーンショットやメモでかまいません）。</p>
+        <div class="endinfo">
+          <p><b>同意の取り消し</b>　${cfg(C.DELETE_DEADLINE, "削除受付の期日")}までに、上の参加者番号を下記の問い合わせ先へ連絡すれば、あなたのデータを削除します。</p>
+          <p><b>問い合わせ先</b>　${contactHtml()}</p>
+        </div>
         ${QUESTIONNAIRE.DEBRIEF}
-        ${C.CONTACT ? `<p class="small">連絡先：${C.CONTACT}</p>` : ""}
-        ${formUrl ? `<p>続けて、下のボタンから回答ページに移動してください。</p>` : `<p>このページを閉じて終了してください。</p>`}
+        <p class="center">このページを閉じて終了してください。</p>
       </div>`;
     },
-    choices: () => (C.FORM_URL ? ["質問紙に進む"] : []),
-    on_finish: () => {
-      if (C.FORM_URL) location.href = C.FORM_URL.replace("PID", encodeURIComponent(PID));
-    },
+    choices: [],
   });
 
   jsPsych.run(timeline);

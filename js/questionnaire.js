@@ -10,7 +10,7 @@ const QUESTIONNAIRE = {
   // IATが終わったあとの切り替え画面
   INTRO: `<h2>課題は終了です</h2>
     <p>おつかれさまでした。続いて、いくつかの質問にお答えください。</p>
-    <p>マウスで回答を選び、各ページの下にある「次へ」を押して進んでください。<br>
+    <p>マウスで回答を選び、各ページの下にある「次へ」を押して進んでください。答えたくない質問は、空欄のまま進んでかまいません。<br>
     正しい答えや間違った答えはありません。あまり深く考えず、あなたに一番近いものを選んでください。</p>`,
 
   SCALES: [
@@ -57,17 +57,17 @@ const QUESTIONNAIRE = {
   DEMOGRAPHICS: `
     <div class="instr">
       <h2>あなた自身について</h2>
-      <p>最後に、あなた自身についてお答えください。</p>
+      <p>最後に、あなた自身についてお答えください。答えたくない項目は空欄のままでかまいません。</p>
       <table class="demo">
-        <tr><th>年齢</th><td><input type="number" name="age" min="15" max="99" required> 歳</td></tr>
+        <tr><th>年齢</th><td><input type="number" name="age" min="18" max="99"> 歳</td></tr>
         <tr><th>性別</th><td>
-          <label><input type="radio" name="gender" value="男性" required> 男性</label>
+          <label><input type="radio" name="gender" value="男性"> 男性</label>
           <label><input type="radio" name="gender" value="女性"> 女性</label>
           <label><input type="radio" name="gender" value="その他"> その他</label>
           <label><input type="radio" name="gender" value="回答しない"> 回答しない</label>
         </td></tr>
         <tr><th>学年</th><td>
-          <select name="grade" required>
+          <select name="grade">
             <option value="">選択してください</option>
             <option>1年</option><option>2年</option><option>3年</option><option>4年</option>
             <option>大学院生</option><option>その他</option>
@@ -100,7 +100,8 @@ function buildQuestionnaireTimeline() {
       pages.push({
         type: jsPsychSurveyLikert,
         preamble: `<div class="instr q-pre"><p>${sc.instruction}</p>${nPages > 1 ? `<p class="small center">（${pageNo} / ${nPages} ページ）</p>` : ""}</div>`,
-        questions: chunk.map((it) => ({ prompt: it.text, name: it.id, labels: sc.labels, required: true })),
+        // 「答えたくない質問には答えなくてかまいません」と説明しているので、回答は必須にしない
+        questions: chunk.map((it) => ({ prompt: it.text, name: it.id, labels: sc.labels, required: false })),
         scale_width: 760,
         button_label: "次へ",
         data: { task: "questionnaire", scale: sc.id },
@@ -122,22 +123,26 @@ const qMean = (a) => (a.length ? a.reduce((s, x) => s + x, 0) / a.length : "");
 function collectQuestionnaire(jsPsych) {
   const raw = {};
   jsPsych.data.get().filter({ task: "questionnaire" }).values().forEach((d) => {
-    for (const [k, v] of Object.entries(d.response)) raw[k] = v + 1; // 0〜4 → 1〜5点
+    // 0〜4 → 1〜5点。未回答は空欄（""）のまま
+    for (const [k, v] of Object.entries(d.response)) raw[k] = typeof v === "number" ? v + 1 : "";
   });
   const out = {};
   QUESTIONNAIRE.SCALES.forEach((sc) => {
     const n = sc.labels.length;
-    const scored = sc.items.map((it) => (it.reverse ? n + 1 - raw[it.id] : raw[it.id]));
-    sc.items.forEach((it) => (out[it.id] = raw[it.id])); // 素点（逆転前）
-    out[`${sc.id}_total`] = scored.reduce((s, x) => s + x, 0);
+    const score = (it) => (raw[it.id] === "" || raw[it.id] === undefined ? null : it.reverse ? n + 1 - raw[it.id] : raw[it.id]);
+    const scored = sc.items.map(score).filter((x) => x !== null);
+    sc.items.forEach((it) => (out[it.id] = raw[it.id] ?? "")); // 素点（逆転前）
+    out[`${sc.id}_n_missing`] = sc.items.length - scored.length;
+    // 合計は全項目に回答した人だけ。平均は回答した項目だけで計算
+    out[`${sc.id}_total`] = scored.length === sc.items.length ? scored.reduce((s, x) => s + x, 0) : "";
     out[`${sc.id}_mean`] = qMean(scored);
     const subs = [...new Set(sc.items.map((it) => it.sub).filter(Boolean))];
     subs.forEach((sub) => {
-      const v = sc.items.filter((it) => it.sub === sub).map((it) => (it.reverse ? n + 1 - raw[it.id] : raw[it.id]));
+      const v = sc.items.filter((it) => it.sub === sub).map(score).filter((x) => x !== null);
       out[`${sc.id}_${sub}_mean`] = qMean(v);
     });
     if (sc.attention) {
-      out[sc.attention.id] = raw[sc.attention.id];
+      out[sc.attention.id] = raw[sc.attention.id] ?? "";
       out[`${sc.attention.id}_pass`] = raw[sc.attention.id] === sc.attention.correct;
     }
   });

@@ -193,6 +193,7 @@ async function saveData(jsPsych) {
     screen: `${screen.width}x${screen.height}`,
     summary,
     trials,
+    questionnaire: collectQuestionnaire(jsPsych),
   };
   window.__IAT_RESULT__ = payload; // 動作確認用
 
@@ -299,7 +300,7 @@ function run() {
         <h2>${C.STUDY_TITLE}</h2>
         <p>この調査は、大学生の自己認識について調べる卒業研究の一部です。所要時間は約${C.DURATION_MIN}分です。</p>
         <ul>
-          <li>画面に出る言葉を、キーボードの2つのキーでできるだけ速く分類する課題を行います。</li>
+          <li>画面に出る言葉を、キーボードの2つのキーでできるだけ速く分類する課題を行います。そのあと、ご自身についての質問紙にお答えいただきます。</li>
           <li>参加は任意です。途中でやめたくなった場合は、画面右下の「<b>実験をやめる</b>」ボタンを押せば、いつでもやめることができます。やめても不利益は一切なく、それまでの回答は破棄されます。</li>
           <li>回答は匿名で記録され、統計的に処理されます。個人が特定される形で公表されることはありません。</li>
           <li>データは研究目的以外には使用せず、研究終了後は適切に管理・廃棄します。</li>
@@ -393,6 +394,14 @@ function run() {
     timeline.push({ timeline: seq, conditional_function: () => ORDER === order });
   });
 
+  /* ---- 質問紙（IATのあとに続けて回答）---- */
+  timeline.push({
+    type: jsPsychHtmlButtonResponse,
+    stimulus: `<div class="instr">${QUESTIONNAIRE.INTRO}</div>`,
+    choices: ["質問紙に進む"],
+  });
+  timeline.push(...buildQuestionnaireTimeline());
+
   let saveResult = { ok: false };
   timeline.push({
     type: jsPsychHtmlKeyboardResponse,
@@ -415,18 +424,18 @@ function run() {
     stimulus: () => {
       let saveMsg = "";
       if (!saveResult.ok) {
-        jsPsych.data.get().filter({ task: "iat" }).localSave("csv", `iat_${PID}.csv`);
+        jsPsych.data.get().localSave("csv", `iat_${PID}.csv`);
         saveMsg = `<p class="warn">⚠ データの自動送信に失敗しました。ダウンロードされたファイル（iat_${PID}.csv）を実施者に送ってください。</p>`;
       }
       const formUrl = C.FORM_URL ? C.FORM_URL.replace("PID", encodeURIComponent(PID)) : "";
       return `<div class="instr">
-        <h2>課題は終了です。ありがとうございました。</h2>
+        <h2>これですべて終了です。ご協力ありがとうございました。</h2>
         ${saveMsg}
         <p class="center">参加者番号</p>
         <p class="pid">${PID}</p>
-        ${formUrl
-          ? `<p>続けて質問紙に回答してください。下のボタンから回答ページに移動します（参加者番号は自動で入力されます）。</p>`
-          : `<p>続けて質問紙に回答する場合は、「参加者番号」の欄に上の番号を入力してください。</p>`}
+        ${QUESTIONNAIRE.DEBRIEF}
+        ${C.CONTACT ? `<p class="small">連絡先：${C.CONTACT}</p>` : ""}
+        ${formUrl ? `<p>続けて、下のボタンから回答ページに移動してください。</p>` : `<p>このページを閉じて終了してください。</p>`}
       </div>`;
     },
     choices: () => (C.FORM_URL ? ["質問紙に進む"] : []),

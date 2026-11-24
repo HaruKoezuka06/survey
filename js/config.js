@@ -7,7 +7,7 @@ const IAT_CONFIG = {
   // README の手順でデプロイしたURL（.../exec で終わるもの）を貼る
   GAS_URL: "https://script.google.com/macros/s/AKfycbwQeVT66tOh6iDgKQcy08UP2yZX_WJGtJ-WcRWhbDswjpOSNxXoamZdTWG4L7lpFXOw6A/exec",
 
-  // ---- 終了後に案内する質問紙（Googleフォーム）----
+  // ---- 終了後に案内する外部フォーム（質問紙はこのページ内で実施するので、ふつうは空欄のまま）----
   // 事前入力リンクの参加者番号欄を "PID" にしたURLを貼ると、番号が自動で入ります
   // 例: "https://docs.google.com/forms/d/e/xxxx/viewform?usp=pp_url&entry.123456=PID"
   // 空欄なら、IDを表示するだけで終了します
@@ -26,7 +26,7 @@ const IAT_CONFIG = {
   RESEARCHER: "関西大学 社会学部 4年 肥塚 晴",
   SUPERVISOR: "",          // 指導教員名（例: "関西大学 社会学部 ○○ ○○ 教授"）
   CONTACT: "",             // 問い合わせ先メールアドレス
-  DURATION_MIN: 5,         // 所要時間の目安（分）
+  DURATION_MIN: 7,         // 所要時間の目安（分）
 
   // ---- 反応キー（物理キー位置。IMEのオン/オフに関係なく動作）----
   LEFT_KEY: "E",

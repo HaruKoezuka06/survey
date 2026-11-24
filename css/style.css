@@ -89,3 +89,22 @@ table.words th, table.words td { padding: 6px 14px; border-bottom: 1px solid #44
 }
 .quit-box h2 { margin-top: 0; }
 .quit-actions { margin-top: 12px; }
+
+/* 質問紙 */
+.q-pre { margin-bottom: 0.5em; }
+#jspsych-survey-likert-form { text-align: left; }
+.jspsych-survey-likert-statement { font-size: 18px; margin: 1.6em 0 0.4em; text-align: left; }
+.jspsych-survey-likert-opts { border-bottom: 1px solid #444; padding: 0 0 12px; }
+.jspsych-survey-likert-opts li { font-size: 14px; color: #ccc; }
+.jspsych-survey-likert-opts::before { border-top-color: #666; }
+table.demo { margin: 1em auto; border-collapse: collapse; }
+table.demo th { text-align: left; padding: 10px 18px 10px 0; vertical-align: top; }
+table.demo td { padding: 10px 0; }
+table.demo label { margin-right: 14px; white-space: nowrap; }
+table.demo input[type=number] { width: 80px; font-size: 18px; padding: 4px; }
+table.demo select { font-size: 16px; padding: 4px; }
+.jspsych-survey-likert-opts li,
+.jspsych-survey-likert-opts label,
+.jspsych-survey-likert-opt-label { color: #e5e5e5 !important; font-size: 15px !important; }
+.jspsych-survey-likert-opts input[type=radio] { transform: scale(1.3); cursor: pointer; }
+.jspsych-survey-likert-statement { font-size: 19px !important; }

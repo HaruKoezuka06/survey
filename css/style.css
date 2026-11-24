@@ -71,3 +71,21 @@ table.words th, table.words td { padding: 6px 14px; border-bottom: 1px solid #44
   font-size: 32px; width: 220px; text-align: center; letter-spacing: 0.1em;
   padding: 8px; border-radius: 8px; border: 2px solid #888;
 }
+
+/* 「実験をやめる」ボタンと確認画面 */
+#quit-btn {
+  position: fixed; right: 16px; bottom: 16px; z-index: 1000;
+  font-size: 14px; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+  background: #3a3a3c; color: #ddd; border: 1px solid #777;
+}
+#quit-btn:hover { background: #555; }
+#quit-modal {
+  display: none; position: fixed; inset: 0; z-index: 1001;
+  background: rgba(0, 0, 0, 0.75); align-items: center; justify-content: center;
+}
+.quit-box {
+  background: #2c2c2e; border-radius: 10px; padding: 24px 32px; max-width: 520px;
+  text-align: center; line-height: 1.8; font-size: 17px;
+}
+.quit-box h2 { margin-top: 0; }
+.quit-actions { margin-top: 12px; }

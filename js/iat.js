@@ -151,7 +151,8 @@ function sd(a) {
 }
 
 function computeD(trials) {
-  const crit = trials.filter((t) => t.phase === "practice" || t.phase === "test");
+  // 「実験をやめる」の確認画面で止まった試行はRTが正しくないので除く
+  const crit = trials.filter((t) => (t.phase === "practice" || t.phase === "test") && !t.interrupted);
   const fastRate = crit.filter((t) => t.rt < 300).length / crit.length;
   const errorRate = crit.filter((t) => !t.correct).length / crit.length;
   const valid = crit.filter((t) => t.rt_correct <= 10000);
@@ -177,7 +178,7 @@ function computeD(trials) {
 
 /* ---------- データ保存 ---------- */
 const TRIAL_FIELDS = ["block", "phase", "pairing", "trial_in_block", "stimulus", "category", "stim_class",
-  "correct_side", "response_side", "correct", "rt", "rt_correct", "n_errors"];
+  "correct_side", "response_side", "correct", "rt", "rt_correct", "n_errors", "interrupted"];
 
 async function saveData(jsPsych) {
   const trials = jsPsych.data.get().filter({ task: "iat" }).values()
@@ -221,6 +222,62 @@ function isProbablyPC() {
   return window.innerWidth >= C.MIN_SCREEN_WIDTH && (fine || !coarse);
 }
 
+/* ---------- 「実験をやめる」ボタン（倫理的手続き：いつでも参加をやめられる）----------
+ * 画面右下に常に表示。押すと確認画面が出て、「やめる」を選ぶとその場で終了する。
+ * 中断した場合、回答データは一切送信・保存しない。 */
+function setupQuitButton(jsPsych) {
+  const btn = document.createElement("button");
+  btn.id = "quit-btn";
+  btn.type = "button";
+  btn.tabIndex = -1;
+  btn.textContent = "実験をやめる";
+  // マウスで押してもボタンにフォーカスが残らないようにする（スペースキーで誤って押されないため）
+  btn.addEventListener("mousedown", (e) => e.preventDefault());
+
+  const modal = document.createElement("div");
+  modal.id = "quit-modal";
+  modal.innerHTML = `
+    <div class="quit-box">
+      <h2>実験をやめますか？</h2>
+      <p>やめても、あなたに不利益が生じることは一切ありません。<br>
+      ここまでの回答は<b>保存されず、すべて破棄</b>されます。</p>
+      <div class="quit-actions">
+        <button type="button" tabindex="-1" class="jspsych-btn" id="quit-yes">やめる</button>
+        <button type="button" tabindex="-1" class="jspsych-btn" id="quit-no">続ける</button>
+      </div>
+    </div>`;
+  modal.querySelectorAll("button").forEach((b) => b.addEventListener("mousedown", (e) => e.preventDefault()));
+
+  document.body.append(btn, modal);
+
+  btn.addEventListener("click", () => {
+    window.IAT_PAUSE.paused = true;
+    window.IAT_PAUSE.count++;
+    modal.style.display = "flex";
+  });
+  modal.querySelector("#quit-no").addEventListener("click", () => {
+    modal.style.display = "none";
+    window.IAT_PAUSE.paused = false;
+  });
+  modal.querySelector("#quit-yes").addEventListener("click", () => {
+    window.IAT_PAUSE.aborted = true;
+    modal.remove();
+    btn.remove();
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    jsPsych.abortExperiment(`<div class="instr">
+      <h2>実験を終了しました</h2>
+      <p>ご協力ありがとうございました。ここまでの回答は保存されていません。</p>
+      <p>このページを閉じてください。</p>
+      ${C.CONTACT ? `<p class="small">ご質問がある場合は ${C.CONTACT} までご連絡ください。</p>` : ""}
+    </div>`);
+  });
+}
+
+function hideQuitButton() {
+  document.getElementById("quit-btn")?.remove();
+  document.getElementById("quit-modal")?.remove();
+}
+
 function run() {
   const jsPsych = initJsPsych({ display_element: "jspsych-target" });
 
@@ -232,6 +289,7 @@ function run() {
     return;
   }
 
+  setupQuitButton(jsPsych);
   const timeline = [];
 
   timeline.push({
@@ -242,7 +300,7 @@ function run() {
         <p>この調査は、大学生の自己認識について調べる卒業研究の一部です。所要時間は約${C.DURATION_MIN}分です。</p>
         <ul>
           <li>画面に出る言葉を、キーボードの2つのキーでできるだけ速く分類する課題を行います。</li>
-          <li>参加は任意です。途中でやめたくなった場合は、ブラウザを閉じればいつでも中断でき、不利益は一切ありません。</li>
+          <li>参加は任意です。途中でやめたくなった場合は、画面右下の「<b>実験をやめる</b>」ボタンを押せば、いつでもやめることができます。やめても不利益は一切なく、それまでの回答は破棄されます。</li>
           <li>回答は匿名で記録され、統計的に処理されます。個人が特定される形で公表されることはありません。</li>
           <li>データは研究目的以外には使用せず、研究終了後は適切に管理・廃棄します。</li>
         </ul>
@@ -341,6 +399,7 @@ function run() {
     stimulus: `<div class="instr"><h2>データを保存しています…</h2><p>このままお待ちください。ページを閉じないでください。</p></div>`,
     choices: "NO_KEYS",
     trial_duration: 300,
+    on_start: hideQuitButton, // 課題が終わったら「やめる」ボタンは消す
   });
   timeline.push({
     type: jsPsychCallFunction,

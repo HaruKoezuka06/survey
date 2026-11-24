@@ -6,6 +6,10 @@
  * ========================================================= */
 const { ParameterType } = jsPsychModule;
 
+// 「実験をやめる」の確認画面が開いている間はキー入力を受け付けない
+// count：確認画面が開かれた回数（試行中に開かれたら、その試行を「中断あり」として記録する）
+window.IAT_PAUSE = { paused: false, aborted: false, count: 0 };
+
 function keyCodeOf(letter) {
   return "Key" + letter.toUpperCase();
 }
@@ -31,6 +35,7 @@ class IatTrialPlugin {
       correct: { type: ParameterType.BOOL },      // 最初の反応が正答か
       rt_correct: { type: ParameterType.FLOAT },  // 正答キーを押すまでの時間（誤答時は押し直し込み）
       n_errors: { type: ParameterType.INT },
+      interrupted: { type: ParameterType.BOOL }, // 試行中に「実験をやめる」の確認画面が開かれたか
       response_side: { type: ParameterType.STRING },
     },
   };
@@ -60,11 +65,13 @@ class IatTrialPlugin {
     const errEl = display_element.querySelector("#iat-error");
 
     let t0 = null;
+    const pauseCountAtStart = window.IAT_PAUSE.count;
     let first = null;
     let nErrors = 0;
 
     const onKey = (e) => {
-      if (e.repeat || t0 === null) return;
+      if (e.repeat || t0 === null || window.IAT_PAUSE.paused) return;
+      if (window.IAT_PAUSE.aborted) return document.removeEventListener("keydown", onKey);
       if (e.code !== leftCode && e.code !== rightCode) return;
       e.preventDefault();
       const t = performance.now() - t0;
@@ -80,6 +87,7 @@ class IatTrialPlugin {
           correct: first.correct,
           rt_correct: Math.round(t),
           n_errors: nErrors,
+          interrupted: window.IAT_PAUSE.count !== pauseCountAtStart,
           response_side: first.side,
         });
       } else {
@@ -112,7 +120,8 @@ class SpaceScreenPlugin {
   trial(display_element, trial) {
     display_element.innerHTML = `<div class="instr">${trial.html}<p class="go">${trial.prompt}</p></div>`;
     const onKey = (e) => {
-      if (e.repeat || e.code !== "Space") return;
+      if (window.IAT_PAUSE.aborted) return document.removeEventListener("keydown", onKey);
+      if (e.repeat || e.code !== "Space" || window.IAT_PAUSE.paused) return;
       e.preventDefault();
       document.removeEventListener("keydown", onKey);
       this.jsPsych.finishTrial({});

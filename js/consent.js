@@ -11,7 +11,7 @@ function cfg(v, label) {
 }
 
 function contactHtml() {
-  return `関西大学 ${cfg(C.AFFILIATION, "所属")} 4年　${esc(C.RESEARCHER)}（${cfg(C.EMAIL, "大学メールアドレス")}）／指導教員：${cfg(C.SUPERVISOR, "指導教員名")}`;
+  return `関西大学 ${cfg(C.AFFILIATION, "所属")} 4年　${esc(C.RESEARCHER)}（${cfg(C.EMAIL, "メールアドレス")}）／指導教員：${cfg(C.SUPERVISOR, "指導教員名")}`;
 }
 
 function todayStr() {

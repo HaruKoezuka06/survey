@@ -25,9 +25,9 @@ const IAT_CONFIG = {
   REWARD_TEXT: "",                                // 謝礼がある場合の1文（例："参加者には500円分の図書カードをお渡しします。"）
   RESEARCHER: "肥塚 晴",
   AFFILIATION: "社会学部 社会学科 心理学専攻",      // 所属
-  EMAIL: "",                                      // 大学のメールアドレス
-  SUPERVISOR: "",                                 // 指導教員の氏名（例："脇田 ○○ 先生"）
-  DELETE_DEADLINE: "",                            // 同意取り消し（データ削除）の受付期日（例："2026年12月20日"）
+  EMAIL: "sunnylamp2023@gmail.com",               // 問い合わせ用メールアドレス
+  SUPERVISOR: "脇田 貴文",                         // 指導教員の氏名
+  DELETE_DEADLINE: "2026年12月12日",               // 同意取り消し（データ削除）の受付期日
   DISPOSAL_TIMING: "卒業論文の審査終了後",          // データを破棄する時期
 
   // ---- 同意画面の署名欄 ----

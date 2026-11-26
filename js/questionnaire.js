@@ -100,9 +100,9 @@ const QUESTIONNAIRE = {
         <tr><th>あなたの年齢を教えてください。</th><td>
           <select name="age" required>
             <option value="">選択してください</option>
-            <option>18</option><option>19</option><option>20</option><option>21</option>
-            <option>22</option><option>23</option><option>24</option><option>25</option>
-          </select> 歳
+            <option value="18">18歳</option><option value="19">19歳</option><option value="20">20歳</option><option value="21">21歳</option>
+            <option value="22">22歳</option><option value="23">23歳</option><option value="24">24歳</option><option value="25">25歳</option><option value="その他">その他（26歳以上）</option>
+          </select>
         </td></tr>
         <tr><th>あなたの学年を教えてください。</th><td>
           <select name="grade" required>

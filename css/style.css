@@ -120,3 +120,36 @@ table.demo select { font-size: 16px; padding: 4px; }
 .consent-actions { margin: 1em 0 2em; }
 .jspsych-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .endinfo { border-left: 3px solid #666; padding-left: 14px; margin: 1.2em 0; }
+
+
+/* ---------- 質問紙：5つの独立した丸（線でつながない） ---------- */
+.lc-form { max-width: 820px; margin: 0 auto; text-align: left; }
+.lc-item {
+  border: 1px solid #444; border-radius: 10px; margin: 0 0 14px; padding: 12px 16px 10px;
+}
+.lc-item.lc-missing { border: 2px solid #ff6b6b; background: rgba(255, 107, 107, 0.08); }
+.lc-text { font-size: 18px; line-height: 1.6; padding: 0 4px; }
+.lc-no { color: #aaa; margin-right: 0.4em; }
+.lc-opts {
+  display: grid; grid-template-columns: repeat(var(--n), 1fr);
+  gap: 12px; margin-top: 10px;
+}
+.lc-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  cursor: pointer; padding: 4px 2px; border-radius: 8px; text-align: center;
+}
+.lc-opt:hover { background: rgba(255, 255, 255, 0.06); }
+.lc-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.lc-circle {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 2px solid #d0d0d0; background: transparent; box-sizing: border-box;
+  transition: background 0.1s, border-color 0.1s;
+}
+.lc-opt input:checked + .lc-circle {
+  border-color: #ffd60a; background: radial-gradient(circle, #ffd60a 0 45%, transparent 50%);
+}
+.lc-opt input:focus-visible + .lc-circle { outline: 2px solid #6ab0ff; outline-offset: 3px; }
+.lc-num { font-size: 14px; color: #ccc; font-weight: bold; }
+.lc-lab { font-size: 13px; color: #ccc; line-height: 1.35; }
+.lc-msg { text-align: center; }
+table.demo th { max-width: 340px; font-weight: normal; }
